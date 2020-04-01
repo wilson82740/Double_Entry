@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<environments default="production">
+		<environment id="production">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.cj.jdbc.Driver" />
+				<property name="url" value="jdbc:mysql://192.168.1.199:3306/double_entry" />
+				<property name="username" value="wilson" />
+				<property name="password" value="Qk84C99wJt" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>
+		<mapper resource="dao/Same_MRNMapper.xml" />
+		<mapper resource="dao/Match_VisitMapper.xml" />
+		<mapper resource="dao/Crf_DatarecordMapper.xml" />
+	</mappers>
+</configuration>
