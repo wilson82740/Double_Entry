@@ -7,4 +7,6 @@ import model.VisitExample;
 
 public interface VisitMapper {
   Visit selectStudyPlanVisits(VisitExample example);
+  
+  Visit selectVisits(VisitExample example);
 }

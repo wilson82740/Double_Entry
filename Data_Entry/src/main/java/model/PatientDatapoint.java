@@ -8,6 +8,8 @@ public class PatientDatapoint {
 
   private String mrn;
   
+  private String datapointName;
+  
   private String questionText;
   
   private String value1;
@@ -36,6 +38,14 @@ public class PatientDatapoint {
 
   public void setMrn(String mrn) {
     this.mrn = mrn;
+  }
+
+  public String getDatapointName() {
+    return datapointName;
+  }
+
+  public void setDatapointName(String datapointName) {
+    this.datapointName = datapointName;
   }
 
   public String getQuestionText() {

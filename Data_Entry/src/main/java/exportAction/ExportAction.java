@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.poi.hssf.util.CellReference;
 import org.apache.poi.openxml4j.opc.PackagePart;
@@ -33,9 +32,13 @@ import model.PatienttoMRNBean;
 import model.Same_MRN;
 
 public class ExportAction {
-  public static final String notFound = " not found in ";
-  public static final String inconsistent = " is Inconsistent ";
-  public static final String formNotExist = " Form not exist ";
+
+  public static final String notFound = " is not found in ";
+  public static final String inconsistent = " is inconsistent with other protocol. ";
+  public static final String bothInconsistent = " are both inconsistent with other protocol. ";
+  public static final String formNotExist = " This form doesn't exist. ";
+  public static final String diffanswer = " Same question but different answer. Please reconfirm. ";
+  public static final String fieldEmpty = " The field is empty in ";
   
   public static void exportpatient(ExcelWriter writer, long protocol1Id, long protocol2Id, String protocolnum1, 
       String protocolnum2, List<PatienttoMRNBean> patienttoMRNs, PatientMapper patientMapper, Same_MRNMapper sameMRNMapper) {
@@ -52,6 +55,10 @@ public class ExportAction {
     mergeCell.setStartCell(new CellReference(0, 3).formatAsString());
     mergeCell.setEndCell(new CellReference(0, 4).formatAsString());
     mergeCells.add(mergeCell);
+    mergeCell = new MergeCell();
+    mergeCell.setStartCell(new CellReference(0, 5).formatAsString());
+    mergeCell.setEndCell(new CellReference(1, 5).formatAsString());
+    mergeCells.add(mergeCell);
     
     exportRow = new ArrayList<ExportCell>();
     ExportCell cell = null;
@@ -59,19 +66,23 @@ public class ExportAction {
     exportRow.add(null);
     cell = new ExportCell();
     cell.setText(protocolnum1);
-    cell.setStyle("merge");
+    cell.setStyle("protocolTopic1");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("");
-    cell.setStyle("merge");
+    cell.setStyle("protocolTopic1");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText(protocolnum2);
-    cell.setStyle("merge");
+    cell.setStyle("protocolTopic2");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("");
-    cell.setStyle("merge");
+    cell.setStyle("protocolTopic2");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("Inconsistent Type");
+    cell.setStyle("inconsistentTopic");
     exportRow.add(cell);
     exportRows.add(exportRow);
 
@@ -79,27 +90,27 @@ public class ExportAction {
 
     cell = new ExportCell();
     cell.setText("Subject ID");
-    cell.setStyle(null);
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("Last Name");
-    cell.setStyle(null);
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("GUID");
-    cell.setStyle(null);
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("Last Name");
-    cell.setStyle(null);
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("GUID");
-    cell.setStyle(null);
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Inconsistent Type");
-    cell.setStyle(null);
+    cell.setText("");
+    cell.setStyle("inconsistentTopic");
     exportRow.add(cell);
     exportRows.add(exportRow);
 
@@ -113,27 +124,27 @@ public class ExportAction {
             patientMapper.noStudyEventByPrimaryKey(patientexample1);
         cell = new ExportCell();
         cell.setText(patienttoMRNs.get(index).getMrn());
-        cell.setStyle("notFound");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText(patient1.getLastName());
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText(patient1.getFirstName());
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText("");
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText("");
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
-        cell.setText(patienttoMRNs.get(index).getMrn() + notFound + protocolnum2);
-        cell.setStyle(null);
+        cell.setText(patienttoMRNs.get(index).getMrn() + notFound + protocolnum2+".");
+        cell.setStyle("bold");
         exportRow.add(cell);
         exportRows.add(exportRow);
       } else if(patienttoMRNs.get(index).getPatient2Id() != null && patienttoMRNs.get(index).getPatient1Id() == null) {
@@ -145,90 +156,124 @@ public class ExportAction {
             patientMapper.noStudyEventByPrimaryKey(patientexample2);
         cell = new ExportCell();
         cell.setText(patient2.getMrn());
-        cell.setStyle("notFound");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText("");
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText("");
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText(patient2.getLastName());
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
         cell.setText(patient2.getFirstName());
-        cell.setStyle("inconsistent");
+        cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
-        cell.setText(patient2.getMrn() + notFound + protocolnum1);
-        cell.setStyle(null);
+        cell.setText(patient2.getMrn() + notFound + protocolnum1+".");
+        cell.setStyle("bold");
         exportRow.add(cell);
         exportRows.add(exportRow);
       } else {
-        Same_MRN sameMRN = new Same_MRN();
-        sameMRN.setMrn(patienttoMRNs.get(index).getMrn());
-        sameMRN.setPatient1Id(patienttoMRNs.get(index).getPatient1Id());
-        sameMRN.setPatient2Id(patienttoMRNs.get(index).getPatient2Id());
-        sameMRNMapper.insert(sameMRN);
-        if (!patienttoMRNs.get(index).getSameFirstName() || !patienttoMRNs.get(index).getSameLastName()) {
-          exportRow = new ArrayList<ExportCell>();
+        PatientExample patientexample1 = new PatientExample();
+        patientexample1.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient1Id())
+        .andProtocolidEqualTo(protocol1Id);
+        Patient patient1 =
+            patientMapper.noStudyEventByPrimaryKey(patientexample1);
+        PatientExample patientexample2 = new PatientExample();
+        patientexample2.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient2Id())
+        .andProtocolidEqualTo(protocol1Id);
+        Patient patient2 =
+            patientMapper.noStudyEventByPrimaryKey(patientexample1);
+        if (!patienttoMRNs.get(index).getSameLastName() && patienttoMRNs.get(index).getSameFirstName()) {
           cell = new ExportCell();
+          cell.setText(patienttoMRNs.get(index).getMrn());
+          cell.setStyle("normal");
           exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getLastName());
+          cell.setStyle("normal");
           exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getFirstName());
+          cell.setStyle("normal");
           exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getLastName());
+          cell.setStyle("normal");
           exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getFirstName());
+          cell.setStyle("normal");
           exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText("The last name of "+ patienttoMRNs.get(index).getMrn() + inconsistent);
+          cell.setStyle("bold");
           exportRow.add(cell);
-          PatientExample patientexample1 = new PatientExample();
-          patientexample1.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient1Id())
-              .andProtocolidEqualTo(protocol1Id);
-          Patient patient1 =
-              patientMapper.noStudyEventByPrimaryKey(patientexample1);
-          PatientExample patientexample2 = new PatientExample();
-          patientexample2.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient2Id())
-              .andProtocolidEqualTo(protocol1Id);
-          Patient patient2 =
-              patientMapper.noStudyEventByPrimaryKey(patientexample1);
-          if (!patienttoMRNs.get(index).getSameLastName()) {
-            cell = new ExportCell();
-            cell.setText(patient1.getLastName());
-            cell.setStyle("inconsistent");
-            exportRow.set(1, cell);
-            cell = new ExportCell();
-            cell.setText(patient2.getLastName());
-            cell.setStyle("inconsistent");
-            exportRow.set(3, cell);
-            cell = new ExportCell();
-            cell.setText("Last Name" + inconsistent);
-            cell.setStyle(null);
-            exportRow.set(5, cell);
-          }
-          if (!patienttoMRNs.get(index).getSameFirstName()) {
-            cell = new ExportCell();
-            cell.setText(patient1.getFirstName());
-            cell.setStyle("inconsistent");
-            exportRow.set(2, cell);
-            cell = new ExportCell();
-            cell.setText(patient2.getFirstName());
-            cell.setStyle("inconsistent");
-            exportRow.set(4, cell);
-            if (!patienttoMRNs.get(index).getSameLastName()) {
-              cell = new ExportCell();
-              cell.setText("Last Name & GUID" + inconsistent);
-              cell.setStyle(null);
-              exportRow.set(5, cell);
-            } else {
-              cell = new ExportCell();
-              cell.setText("GUID" + inconsistent);
-              cell.setStyle(null);
-              exportRow.set(5, cell);
-            }
-          }
           exportRows.add(exportRow);
+        } else if (patienttoMRNs.get(index).getSameFirstName() && !patienttoMRNs.get(index).getSameFirstName()) {
+          cell = new ExportCell();
+          cell.setText(patienttoMRNs.get(index).getMrn());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getLastName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getFirstName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getLastName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getFirstName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText("The GUID of "+ patienttoMRNs.get(index).getMrn() + inconsistent);
+          cell.setStyle("bold");
+          exportRow.add(cell);
+          exportRows.add(exportRow);
+        } else if(!patienttoMRNs.get(index).getSameFirstName() && !patienttoMRNs.get(index).getSameFirstName()) {
+          cell = new ExportCell();
+          cell.setText(patienttoMRNs.get(index).getMrn());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getLastName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient1.getFirstName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getLastName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText(patient2.getFirstName());
+          cell.setStyle("normal");
+          exportRow.add(cell);
+          cell = new ExportCell();
+          cell.setText("The GUID & last name of "+ patienttoMRNs.get(index).getMrn() + bothInconsistent);
+          cell.setStyle("bold");
+          exportRow.add(cell);
+          exportRows.add(exportRow);
+        } else {
+          Same_MRN sameMRN = new Same_MRN();
+          sameMRN.setMrn(patienttoMRNs.get(index).getMrn());
+          sameMRN.setPatient1Id(patienttoMRNs.get(index).getPatient1Id());
+          sameMRN.setPatient2Id(patienttoMRNs.get(index).getPatient2Id());
+          sameMRNMapper.insert(sameMRN);
         }
       }
     }
@@ -279,13 +324,16 @@ public class ExportAction {
     
     cell = new ExportCell();
     cell.setText("Subject ID / Visit");
-    cell.setStyle("merge");
+    cell.setStyle("boldandBorder");
     exportRow.add(cell);
-    exportRow.add(null);
+    cell = new ExportCell();
+    cell.setText("Protocol Name");
+    cell.setStyle("boldandBorder");
+    exportRow.add(cell);
     for(String visitName : allVisit) {
       cell = new ExportCell();
       cell.setText(visitName);
-      cell.setStyle(null);
+      cell.setStyle("boldandBorder");
       exportRow.add(cell);
     }
     exportRows.add(exportRow);
@@ -304,33 +352,74 @@ public class ExportAction {
         List<ExportCell> exportRow2 = new ArrayList<ExportCell>();
         cell = new ExportCell();
         cell.setText(diffVisitDatePatient.getMrn());
-        cell.setStyle("merge");
+        cell.setStyle("boldandBorder");
         exportRow1.add(cell);
         cell = new ExportCell();
         cell.setText(protocolnum1);
-        cell.setStyle(null);
+        cell.setStyle("tlBorder");
         exportRow1.add(cell);
         cell = new ExportCell();
         cell.setText("");
-        cell.setStyle("merge");
+        cell.setStyle("boldandBorder");
         exportRow2.add(cell);
         cell = new ExportCell();
         cell.setText(protocolnum2);
-        cell.setStyle(null);
+        cell.setStyle("blBorder");
         exportRow2.add(cell);
         for(int index = 0 ; index < allVisit.size() ; index++) {
-          exportRow1.add(null);
-          exportRow2.add(null);
+          if(index == allVisit.size()-1) {
+            cell = new ExportCell();
+            cell.setText("");
+            cell.setStyle("trBorder");
+            exportRow1.add(cell);
+            cell = new ExportCell();
+            cell.setText("");
+            cell.setStyle("brBorder");
+            exportRow2.add(cell);
+          } else {
+            cell = new ExportCell();
+            cell.setText("");
+            cell.setStyle("topBorder");
+            exportRow1.add(cell);
+            cell = new ExportCell();
+            cell.setText("");
+            cell.setStyle("bottomBorder");
+            exportRow2.add(cell);
+          }
         }
         cell = new ExportCell(); 
         cellText = diffVisitDatePatient.getVisitDate1() == null ? "EMPTY" : sdFormat.format(diffVisitDatePatient.getVisitDate1());
         cell.setText(cellText);
-        cell.setStyle("inconsistent");
+        if(diffVisitDatePatient.getVisitDate1() == null || diffVisitDatePatient.getVisitDate2() == null) {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("greentrBorder");
+          } else {
+            cell.setStyle("greenTopBorder");
+          }
+        } else {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("yellowtrBorder");
+          } else {
+            cell.setStyle("yellowTopBorder");
+          }
+        }
         exportRow1.set(diffVisitDatePatient.getEventOrder().intValue()+1, cell);
         cell = new ExportCell();
         cellText = diffVisitDatePatient.getVisitDate2() == null ? "EMPTY" : sdFormat.format(diffVisitDatePatient.getVisitDate2());
         cell.setText(cellText);
-        cell.setStyle("inconsistent");
+        if(diffVisitDatePatient.getVisitDate1() == null || diffVisitDatePatient.getVisitDate2() == null) {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("greenbrBorder");
+          } else {
+            cell.setStyle("greenBottomBorder");
+          }
+        } else {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("yellowbrBorder");
+          } else {
+            cell.setStyle("yellowBottomBorder");
+          }
+        }
         exportRow2.set(diffVisitDatePatient.getEventOrder().intValue()+1, cell);
         exportRows.add(exportRow1);
         exportRows.add(exportRow2);
@@ -340,12 +429,36 @@ public class ExportAction {
         cell = new ExportCell(); 
         cellText = diffVisitDatePatient.getVisitDate1() == null ? "EMPTY" : sdFormat.format(diffVisitDatePatient.getVisitDate1());
         cell.setText(cellText);
-        cell.setStyle("inconsistent");
+        if(diffVisitDatePatient.getVisitDate1() == null || diffVisitDatePatient.getVisitDate2() == null) {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("greentrBorder");
+          } else {
+            cell.setStyle("greenTopBorder");
+          }
+        } else {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("yellowtrBorder");
+          } else {
+            cell.setStyle("yellowTopBorder");
+          }
+        }
         exportRow1.set(diffVisitDatePatient.getEventOrder().intValue()+1, cell);
         cell = new ExportCell();
         cellText = diffVisitDatePatient.getVisitDate2() == null ? "EMPTY" : sdFormat.format(diffVisitDatePatient.getVisitDate2());
         cell.setText(cellText);
-        cell.setStyle("inconsistent");
+        if(diffVisitDatePatient.getVisitDate1() == null || diffVisitDatePatient.getVisitDate2() == null) {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("greenbrBorder");
+          } else {
+            cell.setStyle("greenBottomBorder");
+          }
+        } else {
+          if(diffVisitDatePatient.getEventOrder().intValue() == allVisit.size()) {
+            cell.setStyle("yellowbrBorder");
+          } else {
+            cell.setStyle("yellowBottomBorder");
+          }
+        }
         exportRow2.set(diffVisitDatePatient.getEventOrder().intValue()+1, cell);
       }
     }
@@ -413,23 +526,35 @@ public class ExportAction {
       exportRow = new ArrayList<ExportCell>();
       cell = new ExportCell();
       cell.setText(stauts.getMrn());
-      cell.setStyle(null);
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
       cell.setText(stauts.getVisitName());
-      cell.setStyle(null);
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
-      cell.setText(stauts.getTitle()+" | #"+stauts.getEventSequence());
-      cell.setStyle(null);
+      if(stauts.getEventSequence() == 1 ) {
+        cell.setText(stauts.getTitle());
+      } else {
+        cell.setText(stauts.getTitle()+" | #"+stauts.getEventSequence());
+      }
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
       cell.setText(stauts.getStauts1());
-      cell.setStyle("inconsistent");
+      if(stauts.getStauts1().equals(formNotExist)) {
+        cell.setStyle("notExist");
+      } else {
+        cell.setStyle("normal");
+      }
       exportRow.add(cell);
       cell = new ExportCell();
       cell.setText(stauts.getStauts2());
-      cell.setStyle("inconsistent");
+      if(stauts.getStauts2().equals(formNotExist)) {
+        cell.setStyle("notExist");
+      } else {
+        cell.setStyle("normal");
+      }
       exportRow.add(cell);
       exportRows.add(exportRow);
     }
@@ -468,13 +593,11 @@ public class ExportAction {
     List<ExportCell> exportRow = null;
     ExportCell cell = null;
     
+    int valueEmpty;
+    
     exportRow = new ArrayList<ExportCell>();
     cell = new ExportCell();
     cell.setText("Subject ID");
-    cell.setStyle("header");
-    exportRow.add(cell);
-    cell = new ExportCell();
-    cell.setText("Visit Name");
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
@@ -486,59 +609,85 @@ public class ExportAction {
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Field in "+protocolnum1);
+    cell.setText("Variable Name");
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Field in "+protocolnum2);
+    cell.setText("Value in "+protocolnum1);
+    cell.setStyle("header");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("Value in "+protocolnum2);
+    cell.setStyle("header");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("Query Message");
     cell.setStyle("header");
     exportRow.add(cell);
     exportRows.add(exportRow);
     
     for(PatientDatapoint exportDatapoint : exportDatapoints) {
+      valueEmpty = -1;
       exportRow = new ArrayList<ExportCell>();
       cell = new ExportCell();
       cell.setText(exportDatapoint.getMrn());
-      cell.setStyle(null);
-      exportRow.add(cell);
-      cell = new ExportCell();
-      cell.setText(exportDatapoint.getVisitName());
-      cell.setStyle(null);
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
       cell.setText(exportDatapoint.getFormTitle());
-      cell.setStyle(null);
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
       cell.setText(exportDatapoint.getQuestionText());
-      cell.setStyle(null);
+      cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
-      cell.setText(exportDatapoint.getValue1());
-      if(exportDatapoint.getQuestionText() == null && exportDatapoint.getValue1()!=null) {
-        cell.setStyle("notExist");
+      cell.setText(exportDatapoint.getDatapointName());
+      cell.setStyle("normal");
+      exportRow.add(cell);
+      cell = new ExportCell();
+      if(exportDatapoint.getValue1() == null) {
+        valueEmpty = 1;
+        cell.setText("EMPTY");
+        cell.setStyle("valueEmpty");
       } else {
-        cell.setStyle(null);
+        cell.setText(exportDatapoint.getValue1());
+        cell.setStyle("normal");
       }
       exportRow.add(cell);
       cell = new ExportCell();
-      cell.setText(exportDatapoint.getValue2());
-      if(exportDatapoint.getQuestionText() == null && exportDatapoint.getValue2()!=null) {
-        cell.setStyle("notExist");
+      if(exportDatapoint.getValue2() == null) {
+        valueEmpty = 2;
+        cell.setText("EMPTY");
+        cell.setStyle("valueEmpty");
       } else {
-        cell.setStyle(null);
+        cell.setText(exportDatapoint.getValue2());
+        cell.setStyle("normal");
       }
+      exportRow.add(cell);
+      cell = new ExportCell();
+      if(valueEmpty != -1) {
+        if(valueEmpty == 1) {
+          cell.setText(fieldEmpty + protocolnum1 + ".");
+        } else {
+          cell.setText(fieldEmpty + protocolnum2 + ".");
+        }
+      } else {
+        cell.setText(diffanswer);
+      }
+      cell.setStyle("bold");
       exportRow.add(cell);
       exportRows.add(exportRow);
     }
     
     List<Integer> columnsWidth = new ArrayList<Integer>();
     columnsWidth.add(20);
-    columnsWidth.add(15);
     columnsWidth.add(20);
     columnsWidth.add(80);
+    columnsWidth.add(15);
     columnsWidth.add(40);
     columnsWidth.add(40);
+    columnsWidth.add(50);
     
     try {
       if(writer.getExportRowsMap() == null) {

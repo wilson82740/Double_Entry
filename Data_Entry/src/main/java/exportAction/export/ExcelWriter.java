@@ -31,6 +31,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -91,7 +92,20 @@ public abstract class ExcelWriter {
     sst = wb.getSharedStringSource();
 
     for(Map.Entry<String, List<List<ExportCell>>> entry : exportRowsMap.entrySet()) {
-      XSSFSheet sheet = wb.createSheet(entry.getKey());
+      XSSFSheet sheet = null;
+      switch(entry.getKey()) { 
+      case "Patient":
+        sheet = wb.createSheet("病人基本資料比較");
+        break;
+      case "Visit_Date":
+        sheet = wb.createSheet("訪視日期比較");
+        break;
+      case "Form Stauts":
+        sheet = wb.createSheet("表單填寫狀態比較");
+        break;
+      default: 
+        sheet = wb.createSheet(entry.getKey());
+      }
       String sheetRef = sheet.getPackagePart().getPartName().getName();
       sheetNameArray.add(sheetRef);
       File tmp = File.createTempFile("sheet", ".xml");
@@ -128,83 +142,248 @@ public abstract class ExcelWriter {
     Map<String, XSSFCellStyle> styles = new HashMap<String, XSSFCellStyle>();
     XSSFDataFormat fmt = wb.createDataFormat();
 
-    XSSFCellStyle style1 = wb.createCellStyle();
-    style1.setAlignment(HorizontalAlignment.RIGHT);
-    style1.setDataFormat(fmt.getFormat("0.0%"));
-    styles.put("percent", style1);
+XSSFColor color = new XSSFColor();
+    
+    XSSFCellStyle normal = wb.createCellStyle();
+    XSSFFont normalFont = wb.createFont();
+    normalFont.setFontName("Calibri");
+    normal.setFont(normalFont);
+    styles.put("normal", normal);
+    
+    XSSFCellStyle boldandBorder = wb.createCellStyle();
+    XSSFFont boldandBorderFont = wb.createFont();
+    boldandBorderFont.setFontName("Calibri");
+    boldandBorderFont.setBold(true);
+    boldandBorder.setFont(boldandBorderFont);
+    boldandBorder.setBorderBottom(BorderStyle.THICK);
+    boldandBorder.setBorderTop(BorderStyle.THICK);
+    boldandBorder.setBorderLeft(BorderStyle.THICK);
+    boldandBorder.setBorderRight(BorderStyle.THICK);
+    boldandBorder.setAlignment(HorizontalAlignment.CENTER);
+    boldandBorder.setVerticalAlignment(VerticalAlignment.CENTER);
+    styles.put("boldandBorder", boldandBorder);
+    
+    XSSFCellStyle bold = wb.createCellStyle();
+    XSSFFont boldFont = wb.createFont();
+    boldFont.setFontName("Calibri");
+    boldFont.setBold(true);
+    bold.setFont(boldFont);
+    styles.put("bold", bold);
+    
+    XSSFCellStyle tlBorder = wb.createCellStyle();
+    XSSFFont tlBorderFont = wb.createFont();
+    tlBorderFont.setFontName("Calibri");
+    tlBorder.setFont(tlBorderFont);
+    tlBorder.setBorderTop(BorderStyle.THICK);
+    tlBorder.setBorderLeft(BorderStyle.THICK);
+    styles.put("tlBorder", tlBorder);
+    
+    XSSFCellStyle blBorder = wb.createCellStyle();
+    XSSFFont blBorderFont = wb.createFont();
+    blBorderFont.setFontName("Calibri");
+    blBorder.setFont(blBorderFont);
+    blBorder.setBorderBottom(BorderStyle.THICK);
+    blBorder.setBorderLeft(BorderStyle.THICK);
+    styles.put("blBorder", blBorder);
+    
+    XSSFCellStyle trBorder = wb.createCellStyle();
+    XSSFFont trBorderFont = wb.createFont();
+    trBorderFont.setFontName("Calibri");
+    trBorder.setFont(trBorderFont);
+    trBorder.setBorderTop(BorderStyle.THICK);
+    trBorder.setBorderRight(BorderStyle.THICK);
+    styles.put("trBorder", trBorder);
+    
+    XSSFCellStyle brBorder = wb.createCellStyle();
+    XSSFFont brBorderFont = wb.createFont();
+    brBorderFont.setFontName("Calibri");
+    brBorder.setFont(brBorderFont);
+    brBorder.setBorderBottom(BorderStyle.THICK);
+    brBorder.setBorderRight(BorderStyle.THICK);
+    styles.put("brBorder", brBorder);
+    
+    XSSFCellStyle topBorder = wb.createCellStyle();
+    XSSFFont topBorderFont = wb.createFont();
+    topBorderFont.setFontName("Calibri");
+    topBorder.setFont(topBorderFont);
+    topBorder.setBorderTop(BorderStyle.THICK);
+    styles.put("topBorder", topBorder);
+    
+    XSSFCellStyle bottomBorder = wb.createCellStyle();
+    XSSFFont bottomBorderFont = wb.createFont();
+    bottomBorderFont.setFontName("Calibri");
+    bottomBorder.setFont(bottomBorderFont);
+    bottomBorder.setBorderBottom(BorderStyle.THICK);
+    styles.put("bottomBorder", bottomBorder);
+    
+    XSSFCellStyle yellowtrBorder = wb.createCellStyle();
+    XSSFFont yellowtrBorderFont = wb.createFont();
+    yellowtrBorderFont.setFontName("Calibri");
+    yellowtrBorder.setFont(yellowtrBorderFont);
+    yellowtrBorder.setBorderTop(BorderStyle.THICK);
+    yellowtrBorder.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("FFFF37");
+    yellowtrBorder.setFillForegroundColor(color);
+    yellowtrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("yellowtrBorder", yellowtrBorder);
+    
+    XSSFCellStyle yellowbrBorder = wb.createCellStyle();
+    XSSFFont yellowbrBorderFont = wb.createFont();
+    yellowbrBorderFont.setFontName("Calibri");
+    yellowbrBorder.setFont(yellowbrBorderFont);
+    yellowbrBorder.setBorderBottom(BorderStyle.THICK);
+    yellowbrBorder.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("FFFF37");
+    yellowbrBorder.setFillForegroundColor(color);
+    yellowbrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("yellowbrBorder", yellowbrBorder);
+    
+    XSSFCellStyle yellowTopBorder = wb.createCellStyle();
+    XSSFFont yellowTopBorderFont = wb.createFont();
+    yellowTopBorderFont.setFontName("Calibri");
+    yellowTopBorder.setFont(yellowTopBorderFont);
+    yellowTopBorder.setBorderTop(BorderStyle.THICK);
+    color.setARGBHex("FFFF37");
+    yellowTopBorder.setFillForegroundColor(color);
+    yellowTopBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("yellowTopBorder", yellowTopBorder);
+    
+    XSSFCellStyle yellowBottomBorder = wb.createCellStyle();
+    XSSFFont yellowBottomBorderFont = wb.createFont();
+    yellowBottomBorderFont.setFontName("Calibri");
+    yellowBottomBorder.setFont(yellowBottomBorderFont);
+    yellowBottomBorder.setBorderBottom(BorderStyle.THICK);
+    color.setARGBHex("FFFF37");
+    yellowBottomBorder.setFillForegroundColor(color);
+    yellowBottomBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("yellowBottomBorder", yellowBottomBorder);
+    
+    XSSFCellStyle greentrBorder = wb.createCellStyle();
+    XSSFFont greentrBorderFont = wb.createFont();
+    greentrBorderFont.setFontName("Calibri");
+    greentrBorder.setFont(greentrBorderFont);
+    greentrBorder.setBorderTop(BorderStyle.THICK);
+    greentrBorder.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("93FF93");
+    greentrBorder.setFillForegroundColor(color);
+    greentrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("greentrBorder", greentrBorder);
+    
+    XSSFCellStyle greenbrBorder = wb.createCellStyle();
+    XSSFFont greenbrBorderFont = wb.createFont();
+    greenbrBorderFont.setFontName("Calibri");
+    greenbrBorder.setFont(greenbrBorderFont);
+    greenbrBorder.setBorderBottom(BorderStyle.THICK);
+    greenbrBorder.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("93FF93");
+    greenbrBorder.setFillForegroundColor(color);
+    greenbrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("greenbrBorder", greenbrBorder);
+    
+    XSSFCellStyle greenTopBorder = wb.createCellStyle();
+    XSSFFont greenTopBorderFont = wb.createFont();
+    greenTopBorderFont.setFontName("Calibri");
+    greenTopBorder.setFont(greenTopBorderFont);
+    greenTopBorder.setBorderTop(BorderStyle.THICK);
+    color.setARGBHex("93FF93");
+    greenTopBorder.setFillForegroundColor(color);
+    greenTopBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("greenTopBorder", greenTopBorder);
+    
+    XSSFCellStyle greenBottomBorder = wb.createCellStyle();
+    XSSFFont greenBottomBorderFont = wb.createFont();
+    greenBottomBorderFont.setFontName("Calibri");
+    greenBottomBorder.setFont(greenBottomBorderFont);
+    greenBottomBorder.setBorderBottom(BorderStyle.THICK);
+    color.setARGBHex("93FF93");
+    greenBottomBorder.setFillForegroundColor(color);
+    greenBottomBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("greenBottomBorder", greenBottomBorder);
+    
+    XSSFCellStyle protocolTopic1 = wb.createCellStyle();
+    XSSFFont protocolTopic1Font = wb.createFont();
+    protocolTopic1Font.setFontName("Calibri");
+    protocolTopic1Font.setBold(true);
+    protocolTopic1.setFont(protocolTopic1Font);
+    protocolTopic1.setBorderBottom(BorderStyle.THICK);
+    protocolTopic1.setBorderTop(BorderStyle.THICK);
+    protocolTopic1.setBorderLeft(BorderStyle.THICK);
+    protocolTopic1.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("93FF93");
+    protocolTopic1.setFillForegroundColor(color);
+    protocolTopic1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    protocolTopic1.setAlignment(HorizontalAlignment.CENTER);
+    protocolTopic1.setVerticalAlignment(VerticalAlignment.CENTER);
+    styles.put("protocolTopic1", protocolTopic1);
+    
+    XSSFCellStyle protocolTopic2 = wb.createCellStyle();
+    XSSFFont protocolTopic2Font = wb.createFont();
+    protocolTopic2Font.setFontName("Calibri");
+    protocolTopic2Font.setBold(true);
+    protocolTopic2.setFont(protocolTopic2Font);
+    protocolTopic2.setBorderBottom(BorderStyle.THICK);
+    protocolTopic2.setBorderTop(BorderStyle.THICK);
+    protocolTopic2.setBorderLeft(BorderStyle.THICK);
+    protocolTopic2.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("7D7DFF");
+    protocolTopic2.setFillForegroundColor(color);
+    protocolTopic2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    protocolTopic2.setAlignment(HorizontalAlignment.CENTER);
+    protocolTopic2.setVerticalAlignment(VerticalAlignment.CENTER);
+    styles.put("protocolTopic2", protocolTopic2);
+    
+    XSSFCellStyle inconsistentTopic = wb.createCellStyle();
+    XSSFFont inconsistentTopicFont = wb.createFont();
+    inconsistentTopicFont.setFontName("Calibri");
+    inconsistentTopicFont.setBold(true);
+    inconsistentTopic.setFont(inconsistentTopicFont);
+    inconsistentTopic.setBorderBottom(BorderStyle.THICK);
+    inconsistentTopic.setBorderTop(BorderStyle.THICK);
+    inconsistentTopic.setBorderLeft(BorderStyle.THICK);
+    inconsistentTopic.setBorderRight(BorderStyle.THICK);
+    color.setARGBHex("FFD1A4");
+    inconsistentTopic.setFillForegroundColor(color);
+    inconsistentTopic.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    inconsistentTopic.setAlignment(HorizontalAlignment.CENTER);
+    inconsistentTopic.setVerticalAlignment(VerticalAlignment.CENTER);
+    styles.put("inconsistentTopic", inconsistentTopic);
+    
+    XSSFCellStyle valueEmpty = wb.createCellStyle();
+    XSSFFont valueEmptyFont = wb.createFont();
+    valueEmptyFont.setFontName("Calibri");
+    valueEmpty.setFont(valueEmptyFont);
+    color.setARGBHex("FFD1A4");
+    valueEmpty.setFillForegroundColor(color);
+    valueEmpty.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("valueEmpty", valueEmpty);
 
-    XSSFCellStyle style2 = wb.createCellStyle();
-    style2.setAlignment(HorizontalAlignment.CENTER);
-    style2.setDataFormat(fmt.getFormat("0.0X"));
-    styles.put("coeff", style2);
-
-    XSSFCellStyle style3 = wb.createCellStyle();
-    style3.setAlignment(HorizontalAlignment.RIGHT);
-    styles.put("RightAlignment", style3);
-
-    XSSFCellStyle style4 = wb.createCellStyle();
-    style4.setAlignment(HorizontalAlignment.RIGHT);
-    style4.setShrinkToFit(true);
-    style4.setDataFormat(fmt.getFormat("yyyy/MM/dd"));
-    styles.put("date", style4);
-
-    XSSFCellStyle style5 = wb.createCellStyle();
+    XSSFCellStyle header = wb.createCellStyle();
     XSSFFont headerFont = wb.createFont();
     headerFont.setBold(true);
-    style5.setBorderBottom(BorderStyle.HAIR);
-    style5.setBorderTop(BorderStyle.HAIR);
-    style5.setBorderLeft(BorderStyle.HAIR);
-    style5.setBorderRight(BorderStyle.HAIR);
-    style5.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-    style5.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-    style5.setFont(headerFont);
-    style5.setVerticalAlignment(VerticalAlignment.CENTER);
-    style5.setAlignment(HorizontalAlignment.CENTER);
-    styles.put("header", style5);
+    headerFont.setFontName("Calibri");
+    header.setFont(headerFont);
+    header.setBorderBottom(BorderStyle.THICK);
+    header.setBorderTop(BorderStyle.THICK);
+    header.setBorderLeft(BorderStyle.THICK);
+    header.setBorderRight(BorderStyle.THICK);
+    header.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+    header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    header.setVerticalAlignment(VerticalAlignment.CENTER);
+    header.setAlignment(HorizontalAlignment.CENTER);
+    styles.put("header", header);
 
-    XSSFCellStyle style6 = wb.createCellStyle();
-    XSSFFont BorderFont = wb.createFont();
-    BorderFont.setFontName("Calibri");
-    BorderFont.setColor(HSSFColor.HSSFColorPredefined.BLUE.getIndex());
-    BorderFont.setBold(true);
-    style6.setBottomBorderColor(HSSFColor.HSSFColorPredefined.BLUE.getIndex());
-    style6.setTopBorderColor(HSSFColor.HSSFColorPredefined.BLUE.getIndex());
-    style6.setBorderBottom(BorderStyle.MEDIUM);
-    style6.setBorderTop(BorderStyle.MEDIUM);
-    style6.setFont(BorderFont);
-    styles.put("Border", style6);
-    
-    XSSFCellStyle style7 = wb.createCellStyle();
-    style7.setBorderBottom(BorderStyle.HAIR);
-    style7.setBorderTop(BorderStyle.HAIR);
-    style7.setBorderLeft(BorderStyle.HAIR);
-    style7.setBorderRight(BorderStyle.HAIR);
-    style7.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-    style7.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-    styles.put("inconsistent", style7);
-    
-    XSSFCellStyle style8 = wb.createCellStyle();
-    XSSFFont notFoundFont = wb.createFont();
-    notFoundFont.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
-    style8.setFont(notFoundFont);
-    styles.put("notFound", style8);
-    
-    XSSFCellStyle style9 = wb.createCellStyle();
-    style9.setVerticalAlignment(VerticalAlignment.CENTER);
-    style9.setAlignment(HorizontalAlignment.CENTER);
-    styles.put("merge", style9);
-    
-    XSSFCellStyle style10 = wb.createCellStyle();
-    XSSFFont notExist = wb.createFont();
-    notExist.setColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
-    style10.setFont(notExist);
-    style10.setBorderBottom(BorderStyle.HAIR);
-    style10.setBorderTop(BorderStyle.HAIR);
-    style10.setBorderLeft(BorderStyle.HAIR);
-    style10.setBorderRight(BorderStyle.HAIR);
-    style10.setFillForegroundColor(IndexedColors.RED.getIndex());
-    style10.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-    styles.put("notExist", style10);
+    XSSFCellStyle notExist = wb.createCellStyle();
+    XSSFFont notExistFont = wb.createFont();
+    notExistFont.setColor(HSSFColor.HSSFColorPredefined.ORANGE.getIndex());
+    notExistFont.setFontName("Calibri");
+    notExist.setFont(notExistFont);
+    notExist.setBorderBottom(BorderStyle.HAIR);
+    notExist.setBorderTop(BorderStyle.HAIR);
+    notExist.setBorderLeft(BorderStyle.HAIR);
+    notExist.setBorderRight(BorderStyle.HAIR);
+    notExist.setFillForegroundColor(IndexedColors.RED.getIndex());
+    notExist.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    styles.put("notExist", notExist);
 
     return styles;
   }

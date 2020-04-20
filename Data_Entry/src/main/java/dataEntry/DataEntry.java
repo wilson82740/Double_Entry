@@ -219,8 +219,10 @@ public class DataEntry {
     
     sameMRNs.removeAll(sameMRNs);
     //執行訪視日期分頁資料暫存函式
-    ExportAction.exportVisit(writer, protocol1.getProtocolnum(), protocol2.getProtocolnum(), diffVisitDatePatients, allVisit);
-    allVisit.removeAll(allVisit);
+    if( !diffVisitDatePatients.isEmpty() )
+      ExportAction.exportVisit(writer, protocol1.getProtocolnum(), protocol2.getProtocolnum(), diffVisitDatePatients, allVisit);
+    if(allVisit != null)
+      allVisit.removeAll(allVisit);
     diffVisitDatePatients.removeAll(diffVisitDatePatients);
     
     List<PatientVisit> patientVisits = matchVisitMapper.selectAll();
@@ -237,14 +239,24 @@ public class DataEntry {
       //取得各個訪視內的表單(dataRecord)
       VisitExample visitExample1 = new VisitExample();
       visitExample1.or().andIdEqualTo(patientVisits.get(index).getVisit1Id())
-      .andProtocolidEqualTo(protocol1Id)
-      .andStudyeventdefidEqualTo(patientVisits.get(index).getStudy1Id());
+      .andProtocolidEqualTo(protocol1Id);
       Visit visit1 = visitMapper.selectStudyPlanVisits(visitExample1);
       VisitExample visitExample2 = new VisitExample();
       visitExample2.or().andIdEqualTo(patientVisits.get(index).getVisit2Id())
-      .andProtocolidEqualTo(protocol2Id)
-      .andStudyeventdefidEqualTo(patientVisits.get(index).getStudy2Id());
+      .andProtocolidEqualTo(protocol2Id);
       Visit visit2 = visitMapper.selectStudyPlanVisits(visitExample2);
+      
+      VisitExample visitFormExample1 = new VisitExample();
+      visitFormExample1.or().andIdEqualTo(patientVisits.get(index).getVisit1Id());
+      Visit visitForm1 = visitMapper.selectVisits(visitFormExample1);
+      if(visitForm1 != null)
+        visit1.setFilloutForms(visitForm1.getFilloutForms());
+      
+      VisitExample visitFormExample2 = new VisitExample();
+      visitFormExample2.or().andIdEqualTo(patientVisits.get(index).getVisit2Id());
+      Visit visitForm2 = visitMapper.selectVisits(visitFormExample2);
+      if(visitForm2 != null)
+        visit2.setFilloutForms(visitForm2.getFilloutForms());
       //將訪視內有填寫的表單依照表單名稱放入Map參數中，此步驟兩個計畫分開執行
       //計畫1
       for(ViewCRFBean crf1 : visit1.getFilloutForms()) {
@@ -478,7 +490,8 @@ public class DataEntry {
     
     patientVisits.removeAll(patientVisits);
     //執行表單狀態分頁資料暫存函式
-    ExportAction.exportCRFStauts(writer, exportCRFStauts, allCRFinVisit, protocol1.getProtocolnum(), protocol2.getProtocolnum());
+    if( !exportCRFStauts.isEmpty() )
+      ExportAction.exportCRFStauts(writer, exportCRFStauts, allCRFinVisit, protocol1.getProtocolnum(), protocol2.getProtocolnum());
     allCRFinVisit.clear();
     exportCRFStauts.removeAll(exportCRFStauts);
     
@@ -515,6 +528,7 @@ public class DataEntry {
               exportDatapoint.setFormTitle(CDB.get(index).getTitle());
             }
             exportDatapoint.setVisitName(CDB.get(index).getVisitName());
+            exportDatapoint.setDatapointName(datapoints1.get(datapointIndex).getName());
             exportDatapoint.setQuestionText(datapoints1.get(datapointIndex).getText());
             exportDatapoint.setValue1(DPDRE1.get(0).getValue());
             exportDatapoint.setValue2(DPDRE2.get(0).getValue());
@@ -538,6 +552,7 @@ public class DataEntry {
                 exportDatapoint.setFormTitle(CDB.get(index).getTitle());
               }
               exportDatapoint.setVisitName(CDB.get(index).getVisitName());
+              exportDatapoint.setDatapointName(datapoints1.get(datapointIndex).getName());
               exportDatapoint.setQuestionText(datapoints1.get(datapointIndex).getText());
               exportDatapoint.setValue1(DPDRE1.get(0).getValue());
               exportDatapoint.setValue2(null);
@@ -558,6 +573,7 @@ public class DataEntry {
                 exportDatapoint.setFormTitle(CDB.get(index).getTitle());
               }
               exportDatapoint.setVisitName(CDB.get(index).getVisitName());
+              exportDatapoint.setDatapointName(datapoints1.get(datapointIndex).getName());
               exportDatapoint.setQuestionText(datapoints1.get(datapointIndex).getText());
               exportDatapoint.setValue1(null);
               exportDatapoint.setValue2(DPDRE2.get(0).getValue());
@@ -576,8 +592,10 @@ public class DataEntry {
     }
     
     CDB.removeAll(CDB);
-    for(Map.Entry<String, List<PatientDatapoint>> entry : exportDatapointMap.entrySet()) {
-      ExportAction.exportDatapoint(writerDP, entry.getValue(), protocol1.getProtocolnum(), protocol2.getProtocolnum(), entry.getKey());
+    if( !exportDatapointMap.isEmpty() ) {
+      for(Map.Entry<String, List<PatientDatapoint>> entry : exportDatapointMap.entrySet()) {
+        ExportAction.exportDatapoint(writerDP, entry.getValue(), protocol1.getProtocolnum(), protocol2.getProtocolnum(), entry.getKey());
+      }
     }
     exportDatapointMap.clear();
     
