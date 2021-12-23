@@ -12,6 +12,8 @@ public class PatientDatapoint {
   
   private String questionText;
   
+  private String page;
+  
   private String value1;
   
   private String value2;
@@ -54,6 +56,14 @@ public class PatientDatapoint {
 
   public void setQuestionText(String questionText) {
     this.questionText = questionText;
+  }
+
+  public String getPage() {
+    return page;
+  }
+
+  public void setPage(String page) {
+    this.page = page;
   }
 
   public String getValue1() {

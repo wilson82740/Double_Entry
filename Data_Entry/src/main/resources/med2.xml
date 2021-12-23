@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<environments default="production">
+		<environment id="production">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="oracle.jdbc.driver.OracleDriver" />
+				<property name="url" value="jdbc:oracle:thin:@192.168.10.58:21521:xe" />
+				<property name="username" value="csis" />
+				<property name="password" value="csis1111" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>
+		<mapper resource="dao/ProtocolMapper.xml" />
+		<mapper resource="dao/FormMapper.xml" />
+		<mapper resource="dao/PatientMapper.xml" />
+		<mapper resource="dao/VisitMapper.xml" />
+		<mapper resource="dao/DatapointMapper.xml" />
+		<mapper resource="dao/DatapointDatarecordMapper.xml" />
+	</mappers>
+</configuration>

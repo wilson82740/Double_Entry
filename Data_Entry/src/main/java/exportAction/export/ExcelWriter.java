@@ -38,8 +38,12 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTRst;
 
+import exporModel.ColumnCell;
 import exporModel.ExportCell;
 import exporModel.MergeCell;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileOutputStream;
 
 
 public abstract class ExcelWriter {
@@ -49,7 +53,7 @@ public abstract class ExcelWriter {
   
   private Map<String, List<List<ExportCell>>> exportRowsMap;
   private Map<String, List<MergeCell>> mergeCellsMap;
-  private Map<String, List<Integer>> columnsWidthMap;
+  private Map<String, List<ColumnCell>> columnsMap;
   
   public Map<String, List<List<ExportCell>>> getExportRowsMap() {
     return exportRowsMap;
@@ -68,12 +72,12 @@ public abstract class ExcelWriter {
     this.mergeCellsMap = mergeCellsMap;
   }
 
-  public Map<String, List<Integer>> getColumnsWidthMap() {
-    return columnsWidthMap;
+  public Map<String, List<ColumnCell>> getColumnsMap() {
+    return columnsMap;
   }
 
-  public void setColumnsWidthMap(Map<String, List<Integer>> columnsWidthMap) {
-    this.columnsWidthMap = columnsWidthMap;
+  public void setColumnsMap(Map<String, List<ColumnCell>> columnsMap) {
+    this.columnsMap = columnsMap;
   }
 
   /**
@@ -82,7 +86,7 @@ public abstract class ExcelWriter {
    * @param fileName
    * @throws Exception
    */
-  public void process(String fileName) throws Exception {
+  public void process(String folderName, String fileName) throws Exception {
 
     XSSFWorkbook wb = new XSSFWorkbook();
     Map<String, XSSFCellStyle> styles = createStyles(wb);
@@ -93,19 +97,28 @@ public abstract class ExcelWriter {
 
     for(Map.Entry<String, List<List<ExportCell>>> entry : exportRowsMap.entrySet()) {
       XSSFSheet sheet = null;
-      switch(entry.getKey()) { 
-      case "Patient":
+      if(entry.getKey().equals("Patient")) {
         sheet = wb.createSheet("病人基本資料比較");
-        break;
-      case "Visit_Date":
+      } else if(entry.getKey().equals("Visit_Date")) {
         sheet = wb.createSheet("訪視日期比較");
-        break;
-      case "Form Stauts":
+      } else if(entry.getKey().equals("Stauts")) {
         sheet = wb.createSheet("表單填寫狀態比較");
-        break;
-      default: 
+      } else {
         sheet = wb.createSheet(entry.getKey());
       }
+//      switch(entry.getKey()) {
+//      case "Patient":
+//        sheet = wb.createSheet("病人基本資料比較");
+//        break;
+//      case "Visit_Date":
+//        sheet = wb.createSheet("訪視日期比較");
+//        break;
+//      case "Form Stauts":
+//        sheet = wb.createSheet("表單填寫狀態比較");
+//        break;
+//      default: 
+//        sheet = wb.createSheet(entry.getKey());
+//      }
       String sheetRef = sheet.getPackagePart().getPartName().getName();
       sheetNameArray.add(sheetRef);
       File tmp = File.createTempFile("sheet", ".xml");
@@ -121,7 +134,12 @@ public abstract class ExcelWriter {
     os.close();
 
     File templateFile = new File("template.xlsx");
-    FileOutputStream out = new FileOutputStream(fileName);
+//    NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication("smb://192.168.1.18","ABC\\wilson82740", "Tl112915");
+//    SmbFile smbFile = new SmbFile("smb://192.168.1.18/public/07.research assistants/yinchun/Ricovir DDE/"+folderName+"/"+fileName, auth);
+//    SmbFile smbFile = new SmbFile("smb://192.168.1.18/public/07.research assistants/wilson/"+fileName, auth);
+//    SmbFileOutputStream  out = new SmbFileOutputStream(smbFile);
+//    FileOutputStream out = new FileOutputStream("C:\\Users\\wilson82740\\Desktop\\"+fileName);
+    FileOutputStream out = new FileOutputStream("Ricovir DDE/"+folderName+"/"+fileName);
     substitute(templateFile, fileArray, sheetNameArray, out);
     out.close();
 
@@ -142,14 +160,14 @@ public abstract class ExcelWriter {
     Map<String, XSSFCellStyle> styles = new HashMap<String, XSSFCellStyle>();
     XSSFDataFormat fmt = wb.createDataFormat();
 
-XSSFColor color = new XSSFColor();
+    XSSFColor color = new XSSFColor();
     
     XSSFCellStyle normal = wb.createCellStyle();
     XSSFFont normalFont = wb.createFont();
     normalFont.setFontName("Calibri");
     normal.setFont(normalFont);
     styles.put("normal", normal);
-    
+
     XSSFCellStyle boldandBorder = wb.createCellStyle();
     XSSFFont boldandBorderFont = wb.createFont();
     boldandBorderFont.setFontName("Calibri");
@@ -162,14 +180,14 @@ XSSFColor color = new XSSFColor();
     boldandBorder.setAlignment(HorizontalAlignment.CENTER);
     boldandBorder.setVerticalAlignment(VerticalAlignment.CENTER);
     styles.put("boldandBorder", boldandBorder);
-    
+
     XSSFCellStyle bold = wb.createCellStyle();
     XSSFFont boldFont = wb.createFont();
     boldFont.setFontName("Calibri");
     boldFont.setBold(true);
     bold.setFont(boldFont);
     styles.put("bold", bold);
-    
+
     XSSFCellStyle tlBorder = wb.createCellStyle();
     XSSFFont tlBorderFont = wb.createFont();
     tlBorderFont.setFontName("Calibri");
@@ -177,7 +195,7 @@ XSSFColor color = new XSSFColor();
     tlBorder.setBorderTop(BorderStyle.THICK);
     tlBorder.setBorderLeft(BorderStyle.THICK);
     styles.put("tlBorder", tlBorder);
-    
+
     XSSFCellStyle blBorder = wb.createCellStyle();
     XSSFFont blBorderFont = wb.createFont();
     blBorderFont.setFontName("Calibri");
@@ -185,7 +203,7 @@ XSSFColor color = new XSSFColor();
     blBorder.setBorderBottom(BorderStyle.THICK);
     blBorder.setBorderLeft(BorderStyle.THICK);
     styles.put("blBorder", blBorder);
-    
+
     XSSFCellStyle trBorder = wb.createCellStyle();
     XSSFFont trBorderFont = wb.createFont();
     trBorderFont.setFontName("Calibri");
@@ -193,7 +211,7 @@ XSSFColor color = new XSSFColor();
     trBorder.setBorderTop(BorderStyle.THICK);
     trBorder.setBorderRight(BorderStyle.THICK);
     styles.put("trBorder", trBorder);
-    
+
     XSSFCellStyle brBorder = wb.createCellStyle();
     XSSFFont brBorderFont = wb.createFont();
     brBorderFont.setFontName("Calibri");
@@ -201,105 +219,105 @@ XSSFColor color = new XSSFColor();
     brBorder.setBorderBottom(BorderStyle.THICK);
     brBorder.setBorderRight(BorderStyle.THICK);
     styles.put("brBorder", brBorder);
-    
+
     XSSFCellStyle topBorder = wb.createCellStyle();
     XSSFFont topBorderFont = wb.createFont();
     topBorderFont.setFontName("Calibri");
     topBorder.setFont(topBorderFont);
     topBorder.setBorderTop(BorderStyle.THICK);
     styles.put("topBorder", topBorder);
-    
+
     XSSFCellStyle bottomBorder = wb.createCellStyle();
     XSSFFont bottomBorderFont = wb.createFont();
     bottomBorderFont.setFontName("Calibri");
     bottomBorder.setFont(bottomBorderFont);
     bottomBorder.setBorderBottom(BorderStyle.THICK);
     styles.put("bottomBorder", bottomBorder);
-    
+
     XSSFCellStyle yellowtrBorder = wb.createCellStyle();
     XSSFFont yellowtrBorderFont = wb.createFont();
     yellowtrBorderFont.setFontName("Calibri");
     yellowtrBorder.setFont(yellowtrBorderFont);
     yellowtrBorder.setBorderTop(BorderStyle.THICK);
     yellowtrBorder.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("FFFF37");
+    color.setARGBHex("fff2cd");
     yellowtrBorder.setFillForegroundColor(color);
     yellowtrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("yellowtrBorder", yellowtrBorder);
-    
+
     XSSFCellStyle yellowbrBorder = wb.createCellStyle();
     XSSFFont yellowbrBorderFont = wb.createFont();
     yellowbrBorderFont.setFontName("Calibri");
     yellowbrBorder.setFont(yellowbrBorderFont);
     yellowbrBorder.setBorderBottom(BorderStyle.THICK);
     yellowbrBorder.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("FFFF37");
+    color.setARGBHex("fff2cd");
     yellowbrBorder.setFillForegroundColor(color);
     yellowbrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("yellowbrBorder", yellowbrBorder);
-    
+
     XSSFCellStyle yellowTopBorder = wb.createCellStyle();
     XSSFFont yellowTopBorderFont = wb.createFont();
     yellowTopBorderFont.setFontName("Calibri");
     yellowTopBorder.setFont(yellowTopBorderFont);
     yellowTopBorder.setBorderTop(BorderStyle.THICK);
-    color.setARGBHex("FFFF37");
+    color.setARGBHex("fff2cd");
     yellowTopBorder.setFillForegroundColor(color);
     yellowTopBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("yellowTopBorder", yellowTopBorder);
-    
+
     XSSFCellStyle yellowBottomBorder = wb.createCellStyle();
     XSSFFont yellowBottomBorderFont = wb.createFont();
     yellowBottomBorderFont.setFontName("Calibri");
     yellowBottomBorder.setFont(yellowBottomBorderFont);
     yellowBottomBorder.setBorderBottom(BorderStyle.THICK);
-    color.setARGBHex("FFFF37");
+    color.setARGBHex("fff2cd");
     yellowBottomBorder.setFillForegroundColor(color);
     yellowBottomBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("yellowBottomBorder", yellowBottomBorder);
-    
+
     XSSFCellStyle greentrBorder = wb.createCellStyle();
     XSSFFont greentrBorderFont = wb.createFont();
     greentrBorderFont.setFontName("Calibri");
     greentrBorder.setFont(greentrBorderFont);
     greentrBorder.setBorderTop(BorderStyle.THICK);
     greentrBorder.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("93FF93");
+    color.setARGBHex("e2efdb");
     greentrBorder.setFillForegroundColor(color);
     greentrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("greentrBorder", greentrBorder);
-    
+
     XSSFCellStyle greenbrBorder = wb.createCellStyle();
     XSSFFont greenbrBorderFont = wb.createFont();
     greenbrBorderFont.setFontName("Calibri");
     greenbrBorder.setFont(greenbrBorderFont);
     greenbrBorder.setBorderBottom(BorderStyle.THICK);
     greenbrBorder.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("93FF93");
+    color.setARGBHex("e2efdb");
     greenbrBorder.setFillForegroundColor(color);
     greenbrBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("greenbrBorder", greenbrBorder);
-    
+
     XSSFCellStyle greenTopBorder = wb.createCellStyle();
     XSSFFont greenTopBorderFont = wb.createFont();
     greenTopBorderFont.setFontName("Calibri");
     greenTopBorder.setFont(greenTopBorderFont);
     greenTopBorder.setBorderTop(BorderStyle.THICK);
-    color.setARGBHex("93FF93");
+    color.setARGBHex("e2efdb");
     greenTopBorder.setFillForegroundColor(color);
     greenTopBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("greenTopBorder", greenTopBorder);
-    
+
     XSSFCellStyle greenBottomBorder = wb.createCellStyle();
     XSSFFont greenBottomBorderFont = wb.createFont();
     greenBottomBorderFont.setFontName("Calibri");
     greenBottomBorder.setFont(greenBottomBorderFont);
     greenBottomBorder.setBorderBottom(BorderStyle.THICK);
-    color.setARGBHex("93FF93");
+    color.setARGBHex("e2efdb");
     greenBottomBorder.setFillForegroundColor(color);
     greenBottomBorder.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("greenBottomBorder", greenBottomBorder);
-    
+
     XSSFCellStyle protocolTopic1 = wb.createCellStyle();
     XSSFFont protocolTopic1Font = wb.createFont();
     protocolTopic1Font.setFontName("Calibri");
@@ -309,13 +327,13 @@ XSSFColor color = new XSSFColor();
     protocolTopic1.setBorderTop(BorderStyle.THICK);
     protocolTopic1.setBorderLeft(BorderStyle.THICK);
     protocolTopic1.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("93FF93");
+    color.setARGBHex("e2efdb");
     protocolTopic1.setFillForegroundColor(color);
     protocolTopic1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     protocolTopic1.setAlignment(HorizontalAlignment.CENTER);
     protocolTopic1.setVerticalAlignment(VerticalAlignment.CENTER);
     styles.put("protocolTopic1", protocolTopic1);
-    
+
     XSSFCellStyle protocolTopic2 = wb.createCellStyle();
     XSSFFont protocolTopic2Font = wb.createFont();
     protocolTopic2Font.setFontName("Calibri");
@@ -325,13 +343,13 @@ XSSFColor color = new XSSFColor();
     protocolTopic2.setBorderTop(BorderStyle.THICK);
     protocolTopic2.setBorderLeft(BorderStyle.THICK);
     protocolTopic2.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("7D7DFF");
+    color.setARGBHex("d8e3ef");
     protocolTopic2.setFillForegroundColor(color);
     protocolTopic2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     protocolTopic2.setAlignment(HorizontalAlignment.CENTER);
     protocolTopic2.setVerticalAlignment(VerticalAlignment.CENTER);
     styles.put("protocolTopic2", protocolTopic2);
-    
+
     XSSFCellStyle inconsistentTopic = wb.createCellStyle();
     XSSFFont inconsistentTopicFont = wb.createFont();
     inconsistentTopicFont.setFontName("Calibri");
@@ -341,18 +359,18 @@ XSSFColor color = new XSSFColor();
     inconsistentTopic.setBorderTop(BorderStyle.THICK);
     inconsistentTopic.setBorderLeft(BorderStyle.THICK);
     inconsistentTopic.setBorderRight(BorderStyle.THICK);
-    color.setARGBHex("FFD1A4");
+    color.setARGBHex("fff2cd");
     inconsistentTopic.setFillForegroundColor(color);
     inconsistentTopic.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     inconsistentTopic.setAlignment(HorizontalAlignment.CENTER);
     inconsistentTopic.setVerticalAlignment(VerticalAlignment.CENTER);
     styles.put("inconsistentTopic", inconsistentTopic);
-    
+
     XSSFCellStyle valueEmpty = wb.createCellStyle();
     XSSFFont valueEmptyFont = wb.createFont();
     valueEmptyFont.setFontName("Calibri");
     valueEmpty.setFont(valueEmptyFont);
-    color.setARGBHex("FFD1A4");
+    color.setARGBHex("fff2cd");
     valueEmpty.setFillForegroundColor(color);
     valueEmpty.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("valueEmpty", valueEmpty);
@@ -366,7 +384,8 @@ XSSFColor color = new XSSFColor();
     header.setBorderTop(BorderStyle.THICK);
     header.setBorderLeft(BorderStyle.THICK);
     header.setBorderRight(BorderStyle.THICK);
-    header.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+    color.setARGBHex("e7e5e6");
+    header.setFillForegroundColor(color);
     header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     header.setVerticalAlignment(VerticalAlignment.CENTER);
     header.setAlignment(HorizontalAlignment.CENTER);
@@ -374,14 +393,14 @@ XSSFColor color = new XSSFColor();
 
     XSSFCellStyle notExist = wb.createCellStyle();
     XSSFFont notExistFont = wb.createFont();
-    notExistFont.setColor(HSSFColor.HSSFColorPredefined.ORANGE.getIndex());
     notExistFont.setFontName("Calibri");
     notExist.setFont(notExistFont);
     notExist.setBorderBottom(BorderStyle.HAIR);
     notExist.setBorderTop(BorderStyle.HAIR);
     notExist.setBorderLeft(BorderStyle.HAIR);
     notExist.setBorderRight(BorderStyle.HAIR);
-    notExist.setFillForegroundColor(IndexedColors.RED.getIndex());
+    color.setARGBHex("fff2cd");
+    notExist.setFillForegroundColor(color);
     notExist.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     styles.put("notExist", notExist);
 
@@ -397,7 +416,7 @@ XSSFColor color = new XSSFColor();
       String key, List<List<ExportCell>> exportRows) throws Exception {
     CTRst st;
     beginXml();
-    columnsWidth(columnsWidthMap.get(key));
+    columns(columnsMap.get(key));
     beginSheet();
     for(int rowNumber = 0 ; rowNumber < exportRows.size() ; rowNumber++) {
       insertRow(rowNumber);
@@ -464,9 +483,9 @@ XSSFColor color = new XSSFColor();
     sw.mergeCell(mergeCells);
   }
   
-  public void columnsWidth(List<Integer> columnsWidth)
+  public void columns(List<ColumnCell> columns)
       throws IOException {
-    sw.columnsWidth(columnsWidth);
+    sw.columns(columns);
   }
   
   public void endRow() throws IOException {
@@ -634,11 +653,15 @@ XSSFColor color = new XSSFColor();
       }
     }
     
-    public void columnsWidth( List<Integer> columnsWidth)
+    public void columns( List<ColumnCell> columns)
         throws IOException {
       _out.write("<cols>");
-      for(int index = 0 ; index < columnsWidth.size() ; index++) {
-        _out.write("<col min=\""+(index+1)+"\" max=\""+(index+1)+"\" width=\""+columnsWidth.get(index)+"\" customWidth=\""+(index+1)+"\"/>");
+      for(int index = 0 ; index < columns.size() ; index++) {
+        _out.write("<col min=\""+(index+1)+"\" max=\""+(index+1)+"\"");
+        if(columns.get(index).getHide() == 1) {
+          _out.write(" hidden=\"1\"");
+        }
+        _out.write(" width=\""+columns.get(index).getWidth()+"\" customWidth=\""+(index+1)+"\"/>");
       }
       _out.write("</cols>");
     }
@@ -706,58 +729,58 @@ XSSFColor color = new XSSFColor();
    */
   public static void main(String[] args) throws Exception {
 
-    String file = "C:\\Users\\wilson82740\\Desktop\\test5.xlsx";
-
-    ExcelWriter writer = new ExcelWriter() {
-      public void generate(Map<String, XSSFCellStyle> styles,
-          SharedStringsTable sst, PackagePart part) throws Exception {
-        Random rnd = new Random();
-        Calendar calendar = Calendar.getInstance();
-        this.beginSheet();
-
-        for (int rownum = 0; rownum < 100; rownum++) {
-
-          if (rownum == 0) {
-            this.insertRow(0);
-            int styleIndex = styles.get("header").getIndex();
-            this.createCell(0, "Title", styleIndex);
-            this.createCell(1, "% Change", styleIndex);
-            this.createCell(2, "Ratio", styleIndex);
-            this.createCell(3, "Expenses", styleIndex);
-            this.createCell(4, "Date", styleIndex);
-
-            this.endRow();
-          } else {
-            this.insertRow(rownum);
-
-            this.createCell(0, "Hellodsfgdfsgsdfgsdfgsdfgsdfgsdfgsgsdfgsd, " + rownum + "!", styles.get("data").getIndex());
-            this.createCell(1, (double) rnd.nextInt(100) / 100,
-                styles.get("percent").getIndex());
-            this.createCell(2, (double) rnd.nextInt(10) / 10,
-                styles.get("coeff").getIndex());
-            /*this.createCell(3, rnd.nextInt(10000),
-                styles.get("currency").getIndex());*/
-            this.createCell(4, calendar, styles.get("date").getIndex());
-
-            this.endRow();
-
-            calendar.roll(Calendar.DAY_OF_YEAR, 4);
-          }
-        }
-        
-        this.insertRow(100);
-        this.createCell(0, "Hello, 100!", styles.get("data").getIndex());
-        this.endRow();
-        this.insertRow(101);
-        this.createCell(0, "", styles.get("data").getIndex());
-        this.endRow();
-        
-        this.endSheetData();
-        //this.mergeCell();
-        this.endSheet();
-      }
-    };
-    writer.process(file);
+//    String file = "C:\\Users\\wilson82740\\Desktop\\test5.xlsx";
+//
+//    ExcelWriter writer = new ExcelWriter() {
+//      public void generate(Map<String, XSSFCellStyle> styles,
+//          SharedStringsTable sst, PackagePart part) throws Exception {
+//        Random rnd = new Random();
+//        Calendar calendar = Calendar.getInstance();
+//        this.beginSheet();
+//
+//        for (int rownum = 0; rownum < 100; rownum++) {
+//
+//          if (rownum == 0) {
+//            this.insertRow(0);
+//            int styleIndex = styles.get("header").getIndex();
+//            this.createCell(0, "Title", styleIndex);
+//            this.createCell(1, "% Change", styleIndex);
+//            this.createCell(2, "Ratio", styleIndex);
+//            this.createCell(3, "Expenses", styleIndex);
+//            this.createCell(4, "Date", styleIndex);
+//
+//            this.endRow();
+//          } else {
+//            this.insertRow(rownum);
+//
+//            this.createCell(0, "Hellodsfgdfsgsdfgsdfgsdfgsdfgsdfgsgsdfgsd, " + rownum + "!", styles.get("data").getIndex());
+//            this.createCell(1, (double) rnd.nextInt(100) / 100,
+//                styles.get("percent").getIndex());
+//            this.createCell(2, (double) rnd.nextInt(10) / 10,
+//                styles.get("coeff").getIndex());
+//            /*this.createCell(3, rnd.nextInt(10000),
+//                styles.get("currency").getIndex());*/
+//            this.createCell(4, calendar, styles.get("date").getIndex());
+//
+//            this.endRow();
+//
+//            calendar.roll(Calendar.DAY_OF_YEAR, 4);
+//          }
+//        }
+//        
+//        this.insertRow(100);
+//        this.createCell(0, "Hello, 100!", styles.get("data").getIndex());
+//        this.endRow();
+//        this.insertRow(101);
+//        this.createCell(0, "", styles.get("data").getIndex());
+//        this.endRow();
+//        
+//        this.endSheetData();
+//        //this.mergeCell();
+//        this.endSheet();
+//      }
+//    };
+//    writer.process(folderName, file);
   }
 
 }

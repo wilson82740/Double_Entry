@@ -1,30 +1,48 @@
 package model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "CRF_DATARECORD")
 public class CrfDatarecordBean {
   
+  @Id
   private long id;
 
   private String title;
   
+  @Column(name = "DATARECORD1ID")
   private Long dataRecord1Id;
  
+  @Column(name = "FORMVERSION1ID")
   private Long formVersion1Id;
   
+  @Column(name = "DATARECORD2ID")
   private Long dataRecord2Id;
   
+  @Column(name = "FORMVERSION2ID")
   private Long formVersion2Id;
 
+  @Column(name = "MATCHVISITID")
   private long matchVisitId;
 
+  @Column(name = "VISITNAME")
   private String visitName;
 
+  @Column(name = "MRN")
   private String mrn;
   
+  @Column(name = "EVENTSEQUENCE")
   private Long eventSequence;
   
   private String Stauts1;
   
   private String Stauts2;
+  
+  private String page;
   
   public long getId() {
     return id;
@@ -120,6 +138,14 @@ public class CrfDatarecordBean {
 
   public void setStauts2(String stauts2) {
     Stauts2 = stauts2;
+  }
+
+  public String getPage() {
+    return page;
+  }
+
+  public void setPage(String page) {
+    this.page = page;
   }
   
 }

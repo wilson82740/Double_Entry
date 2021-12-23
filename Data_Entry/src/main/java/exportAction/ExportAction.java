@@ -1,6 +1,8 @@
 package exportAction;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -17,9 +19,12 @@ import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTRst;
 
+import com.avaje.ebean.Ebean;
+
 import exportAction.export.ExcelWriter;
 import dao.PatientMapper;
 import dao.Same_MRNMapper;
+import exporModel.ColumnCell;
 import exporModel.ExportCell;
 import exporModel.MergeCell;
 import model.CrfDatarecordBean;
@@ -40,8 +45,101 @@ public class ExportAction {
   public static final String diffanswer = " Same question but different answer. Please reconfirm. ";
   public static final String fieldEmpty = " The field is empty in ";
   
+  public static void exportLogPage(ExcelWriter writer, String protocolnum1, String protocolnum2) {
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime now = LocalDateTime.now();
+    List<List<ExportCell>> exportRows = new ArrayList<List<ExportCell>>();
+    List<ExportCell> exportRow = null;
+    
+    exportRow = new ArrayList<ExportCell>();
+    ExportCell cell = null;
+    cell = new ExportCell();
+    cell.setText("Date");
+    cell.setStyle("header");
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    exportRow = new ArrayList<ExportCell>();
+    cell = new ExportCell();
+    cell.setText(dtf.format(now));
+    cell.setStyle("normal");
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    exportRow = new ArrayList<ExportCell>();
+    cell = new ExportCell();
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    exportRow = new ArrayList<ExportCell>();
+    cell = new ExportCell();
+    cell.setText("Number of Protocol");
+    cell.setStyle("header");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("Website");
+    cell.setStyle("header");
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    exportRow = new ArrayList<ExportCell>();
+    cell = new ExportCell();
+    cell.setText(protocolnum1 + "_1");
+    cell.setStyle("normal");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("https://csis.cims.tw/med");
+    cell.setStyle("normal");
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    exportRow = new ArrayList<ExportCell>();
+    cell = new ExportCell();
+    cell.setText(protocolnum2 + "_2");
+    cell.setStyle("normal");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("https://csis.cims.tw/med2");
+    cell.setStyle("normal");
+    exportRow.add(cell);
+    exportRows.add(exportRow);
+    
+    List<ColumnCell> columns = new ArrayList<ColumnCell>();
+    ColumnCell column ;
+    column = new ColumnCell();
+    column.setWidth(25);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    
+    try {
+      if(writer.getExportRowsMap() == null) {
+        Map<String, List<List<ExportCell>>> exportRowsMap = new LinkedHashMap<String, List<List<ExportCell>>>();
+        exportRowsMap.put("Log Page", exportRows);
+        writer.setExportRowsMap(exportRowsMap);
+        Map<String, List<ColumnCell>> columnsMap = new LinkedHashMap<String, List<ColumnCell>>();
+        columnsMap.put("Log Page", columns);
+        writer.setColumnsMap(columnsMap);
+        Map<String, List<MergeCell>> mergeCellsMap = new LinkedHashMap<String, List<MergeCell>>();
+        mergeCellsMap.put("Log Page", null);
+        writer.setMergeCellsMap(mergeCellsMap);
+      } else {
+        writer.getExportRowsMap().put("Log Page", exportRows);
+        writer.getColumnsMap().put("Log Page", columns);
+        writer.getMergeCellsMap().put("Log Page", null);
+      }
+      //writer.process("C:\\Users\\wilson82740\\Desktop\\Patient.xlsx");
+    } catch (Exception e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
   public static void exportpatient(ExcelWriter writer, long protocol1Id, long protocol2Id, String protocolnum1, 
-      String protocolnum2, List<PatienttoMRNBean> patienttoMRNs, PatientMapper patientMapper, Same_MRNMapper sameMRNMapper) {
+      String protocolnum2, List<PatienttoMRNBean> patienttoMRNs, PatientMapper patientMapperMed1, PatientMapper patientMapperMed2) {
     List<MergeCell> mergeCells = new ArrayList<MergeCell>();
     List<List<ExportCell>> exportRows = new ArrayList<List<ExportCell>>();
     List<ExportCell> exportRow = null;
@@ -65,7 +163,7 @@ public class ExportAction {
 
     exportRow.add(null);
     cell = new ExportCell();
-    cell.setText(protocolnum1);
+    cell.setText(protocolnum1 + "_1");
     cell.setStyle("protocolTopic1");
     exportRow.add(cell);
     cell = new ExportCell();
@@ -73,7 +171,7 @@ public class ExportAction {
     cell.setStyle("protocolTopic1");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText(protocolnum2);
+    cell.setText(protocolnum2 + "_2");
     cell.setStyle("protocolTopic2");
     exportRow.add(cell);
     cell = new ExportCell();
@@ -90,23 +188,23 @@ public class ExportAction {
 
     cell = new ExportCell();
     cell.setText("Subject ID");
-    cell.setStyle("boldandBorder");
+    cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("Last Name");
-    cell.setStyle("boldandBorder");
+    cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("GUID");
-    cell.setStyle("boldandBorder");
+    cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("Last Name");
-    cell.setStyle("boldandBorder");
+    cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("GUID");
-    cell.setStyle("boldandBorder");
+    cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
     cell.setText("");
@@ -121,7 +219,7 @@ public class ExportAction {
         patientexample1.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient1Id())
             .andProtocolidEqualTo(protocol1Id);
         Patient patient1 =
-            patientMapper.noStudyEventByPrimaryKey(patientexample1);
+            patientMapperMed1.noStudyEventByPrimaryKey(patientexample1);
         cell = new ExportCell();
         cell.setText(patienttoMRNs.get(index).getMrn());
         cell.setStyle("normal");
@@ -143,7 +241,7 @@ public class ExportAction {
         cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
-        cell.setText(patienttoMRNs.get(index).getMrn() + notFound + protocolnum2+".");
+        cell.setText(patienttoMRNs.get(index).getMrn() + notFound + protocolnum2 + "_2" + ".");
         cell.setStyle("bold");
         exportRow.add(cell);
         exportRows.add(exportRow);
@@ -153,7 +251,7 @@ public class ExportAction {
         patientexample2.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient2Id())
         .andProtocolidEqualTo(protocol2Id);
         Patient patient2 =
-            patientMapper.noStudyEventByPrimaryKey(patientexample2);
+            patientMapperMed2.noStudyEventByPrimaryKey(patientexample2);
         cell = new ExportCell();
         cell.setText(patient2.getMrn());
         cell.setStyle("normal");
@@ -175,7 +273,7 @@ public class ExportAction {
         cell.setStyle("normal");
         exportRow.add(cell);
         cell = new ExportCell();
-        cell.setText(patient2.getMrn() + notFound + protocolnum1+".");
+        cell.setText(patient2.getMrn() + notFound + protocolnum1 + "_1" + ".");
         cell.setStyle("bold");
         exportRow.add(cell);
         exportRows.add(exportRow);
@@ -184,13 +282,14 @@ public class ExportAction {
         patientexample1.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient1Id())
         .andProtocolidEqualTo(protocol1Id);
         Patient patient1 =
-            patientMapper.noStudyEventByPrimaryKey(patientexample1);
+            patientMapperMed1.noStudyEventByPrimaryKey(patientexample1);
         PatientExample patientexample2 = new PatientExample();
         patientexample2.or().andPatientidEqualTo(patienttoMRNs.get(index).getPatient2Id())
-        .andProtocolidEqualTo(protocol1Id);
+        .andProtocolidEqualTo(protocol2Id);
         Patient patient2 =
-            patientMapper.noStudyEventByPrimaryKey(patientexample1);
+            patientMapperMed2.noStudyEventByPrimaryKey(patientexample2);
         if (!patienttoMRNs.get(index).getSameLastName() && patienttoMRNs.get(index).getSameFirstName()) {
+          exportRow = new ArrayList<ExportCell>();
           cell = new ExportCell();
           cell.setText(patienttoMRNs.get(index).getMrn());
           cell.setStyle("normal");
@@ -216,7 +315,8 @@ public class ExportAction {
           cell.setStyle("bold");
           exportRow.add(cell);
           exportRows.add(exportRow);
-        } else if (patienttoMRNs.get(index).getSameFirstName() && !patienttoMRNs.get(index).getSameFirstName()) {
+        } else if (patienttoMRNs.get(index).getSameLastName() && !patienttoMRNs.get(index).getSameFirstName()) {
+          exportRow = new ArrayList<ExportCell>();
           cell = new ExportCell();
           cell.setText(patienttoMRNs.get(index).getMrn());
           cell.setStyle("normal");
@@ -242,7 +342,8 @@ public class ExportAction {
           cell.setStyle("bold");
           exportRow.add(cell);
           exportRows.add(exportRow);
-        } else if(!patienttoMRNs.get(index).getSameFirstName() && !patienttoMRNs.get(index).getSameFirstName()) {
+        } else if(!patienttoMRNs.get(index).getSameLastName() && !patienttoMRNs.get(index).getSameFirstName()) {
+          exportRow = new ArrayList<ExportCell>();
           cell = new ExportCell();
           cell.setText(patienttoMRNs.get(index).getMrn());
           cell.setStyle("normal");
@@ -273,33 +374,52 @@ public class ExportAction {
           sameMRN.setMrn(patienttoMRNs.get(index).getMrn());
           sameMRN.setPatient1Id(patienttoMRNs.get(index).getPatient1Id());
           sameMRN.setPatient2Id(patienttoMRNs.get(index).getPatient2Id());
-          sameMRNMapper.insert(sameMRN);
+          Ebean.save(sameMRN);
         }
       }
     }
     
-    List<Integer> columnsWidth = new ArrayList<Integer>();
-    columnsWidth.add(30);
-    columnsWidth.add(30);
-    columnsWidth.add(30);
-    columnsWidth.add(30);
-    columnsWidth.add(30);
-    columnsWidth.add(50);
+    List<ColumnCell> columns = new ArrayList<ColumnCell>();
+    ColumnCell column ;
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(50);
+    column.setHide(0);
+    columns.add(column);
 
     try {
       if(writer.getExportRowsMap() == null) {
         Map<String, List<List<ExportCell>>> exportRowsMap = new LinkedHashMap<String, List<List<ExportCell>>>();
         exportRowsMap.put("Patient", exportRows);
         writer.setExportRowsMap(exportRowsMap);
-        Map<String, List<Integer>> columnsWidthMap = new LinkedHashMap<String, List<Integer>>();
-        columnsWidthMap.put("Patient", columnsWidth);
-        writer.setColumnsWidthMap(columnsWidthMap);
+        Map<String, List<ColumnCell>> columnsMap = new LinkedHashMap<String, List<ColumnCell>>();
+        columnsMap.put("Patient", columns);
+        writer.setColumnsMap(columnsMap);
         Map<String, List<MergeCell>> mergeCellsMap = new LinkedHashMap<String, List<MergeCell>>();
         mergeCellsMap.put("Patient", mergeCells);
         writer.setMergeCellsMap(mergeCellsMap);
       } else {
         writer.getExportRowsMap().put("Patient", exportRows);
-        writer.getColumnsWidthMap().put("Patient", columnsWidth);
+        writer.getColumnsMap().put("Patient", columns);
         writer.getMergeCellsMap().put("Patient", mergeCells);
       }
       //writer.process("C:\\Users\\wilson82740\\Desktop\\Patient.xlsx");
@@ -315,7 +435,9 @@ public class ExportAction {
     SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd");
     
     List<List<ExportCell>> exportRows = new ArrayList<List<ExportCell>>();
-    List<MergeCell> mergeCells = new ArrayList<MergeCell>();
+    List<MergeCell> mergeCells = null;
+    if(!diffVisitDatePatients.isEmpty())
+        mergeCells = new ArrayList<MergeCell>();
     List<ExportCell> exportRow = null;
     MergeCell mergeCell = null;
 
@@ -330,11 +452,13 @@ public class ExportAction {
     cell.setText("Protocol Name");
     cell.setStyle("boldandBorder");
     exportRow.add(cell);
-    for(String visitName : allVisit) {
-      cell = new ExportCell();
-      cell.setText(visitName);
-      cell.setStyle("boldandBorder");
-      exportRow.add(cell);
+    if(allVisit != null) {
+      for(String visitName : allVisit) {
+        cell = new ExportCell();
+        cell.setText(visitName);
+        cell.setStyle("boldandBorder");
+        exportRow.add(cell);
+      }
     }
     exportRows.add(exportRow);
     
@@ -355,7 +479,7 @@ public class ExportAction {
         cell.setStyle("boldandBorder");
         exportRow1.add(cell);
         cell = new ExportCell();
-        cell.setText(protocolnum1);
+        cell.setText(protocolnum1 + "_1");
         cell.setStyle("tlBorder");
         exportRow1.add(cell);
         cell = new ExportCell();
@@ -363,7 +487,7 @@ public class ExportAction {
         cell.setStyle("boldandBorder");
         exportRow2.add(cell);
         cell = new ExportCell();
-        cell.setText(protocolnum2);
+        cell.setText(protocolnum2 + "_2");
         cell.setStyle("blBorder");
         exportRow2.add(cell);
         for(int index = 0 ; index < allVisit.size() ; index++) {
@@ -463,11 +587,21 @@ public class ExportAction {
       }
     }
     
-    List<Integer> columnsWidth = new ArrayList<Integer>();
-    columnsWidth.add(30);
-    columnsWidth.add(30);
+    List<ColumnCell> columns = new ArrayList<ColumnCell>();
+    ColumnCell column ;
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(30);
+    column.setHide(0);
+    columns.add(column);
     for(int visitIndex = 0 ; visitIndex < exportRows.get(0).size()-2 ; visitIndex++) {
-      columnsWidth.add(20);
+      column = new ColumnCell();
+      column.setWidth(20);
+      column.setHide(0);
+      columns.add(column);
     }
     
     try {
@@ -475,16 +609,16 @@ public class ExportAction {
         Map<String, List<List<ExportCell>>> exportRowsMap = new LinkedHashMap<String, List<List<ExportCell>>>();
         exportRowsMap.put("Visit_Date", exportRows);
         writer.setExportRowsMap(exportRowsMap);
-        Map<String, List<Integer>> columnsWidthMap = new LinkedHashMap<String, List<Integer>>();
-        columnsWidthMap.put("Visit_Date", columnsWidth);
-        writer.setColumnsWidthMap(columnsWidthMap);
+        Map<String, List<ColumnCell>> columnsMap = new LinkedHashMap<String, List<ColumnCell>>();
+        columnsMap.put("Visit_Date", columns);
+        writer.setColumnsMap(columnsMap);
         Map<String, List<MergeCell>> mergeCellsMap = new LinkedHashMap<String, List<MergeCell>>();
         mergeCellsMap.put("Visit_Date", mergeCells);
         writer.setMergeCellsMap(mergeCellsMap);
       } else {
         Map<String, List<List<ExportCell>>> exportRowsMap = writer.getExportRowsMap();
         exportRowsMap.put("Visit_Date", exportRows);
-        writer.getColumnsWidthMap().put("Visit_Date", columnsWidth);
+        writer.getColumnsMap().put("Visit_Date", columns);
         writer.getMergeCellsMap().put("Visit_Date", mergeCells);
       }
       //writer.process("C:\\Users\\wilson82740\\Desktop\\Visit_Date.xlsx");
@@ -513,11 +647,15 @@ public class ExportAction {
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Form Status in "+protocolnum1);
+    cell.setText("Page");
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Form Status in "+protocolnum2);
+    cell.setText("Form Status in "+protocolnum1 + "_1");
+    cell.setStyle("header");
+    exportRow.add(cell);
+    cell = new ExportCell();
+    cell.setText("Form Status in "+protocolnum2 + "_2");
     cell.setStyle("header");
     exportRow.add(cell);
     exportRows.add(exportRow);
@@ -541,6 +679,10 @@ public class ExportAction {
       cell.setStyle("normal");
       exportRow.add(cell);
       cell = new ExportCell();
+      cell.setText(stauts.getPage());
+      cell.setStyle("normal");
+      exportRow.add(cell);
+      cell = new ExportCell();
       cell.setText(stauts.getStauts1());
       if(stauts.getStauts1().equals(formNotExist)) {
         cell.setStyle("notExist");
@@ -559,27 +701,47 @@ public class ExportAction {
       exportRows.add(exportRow);
     }
     
-    List<Integer> columnsWidth = new ArrayList<Integer>();
-    columnsWidth.add(20);
-    columnsWidth.add(15);
-    columnsWidth.add(40);
-    columnsWidth.add(40);
-    columnsWidth.add(40);
+    List<ColumnCell> columns = new ArrayList<ColumnCell>();
+    ColumnCell column ;
+    column = new ColumnCell();
+    column.setWidth(20);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(15);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(15);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
     
     try {
       if(writer.getExportRowsMap() == null) {
         Map<String, List<List<ExportCell>>> exportRowsMap = new LinkedHashMap<String, List<List<ExportCell>>>();
         exportRowsMap.put("Form Stauts", exportRows);
         writer.setExportRowsMap(exportRowsMap);
-        Map<String, List<Integer>> columnsWidthMap = new LinkedHashMap<String, List<Integer>>();
-        columnsWidthMap.put("Form Stauts", columnsWidth);
-        writer.setColumnsWidthMap(columnsWidthMap);
+        Map<String, List<ColumnCell>> columnsMap = new LinkedHashMap<String, List<ColumnCell>>();
+        columnsMap.put("Form Stauts", columns);
+        writer.setColumnsMap(columnsMap);
         Map<String, List<MergeCell>> mergeCellsMap = new LinkedHashMap<String, List<MergeCell>>();
         mergeCellsMap.put("Form Stauts", null);
         writer.setMergeCellsMap(mergeCellsMap);
       } else {
         writer.getExportRowsMap().put("Form Stauts", exportRows);
-        writer.getColumnsWidthMap().put("Form Stauts", columnsWidth);
+        writer.getColumnsMap().put("Form Stauts", columns);
         writer.getMergeCellsMap().put("Form Stauts", null);
       }
       //writer.process("C:\\Users\\wilson82740\\Desktop\\Visit_Form.xlsx");
@@ -588,7 +750,8 @@ public class ExportAction {
       e.printStackTrace();
     }
   }
-  public static void exportDatapoint(ExcelWriter writer, List<PatientDatapoint> exportDatapoints, String protocolnum1, String protocolnum2, String sheetName) {
+  public static void exportDatapoint(ExcelWriter writer, List<PatientDatapoint> exportDatapoints, String protocolnum1, 
+      String protocolnum2, String sheetName, Boolean hasPageColumn) {
     List<List<ExportCell>> exportRows = new ArrayList<List<ExportCell>>();
     List<ExportCell> exportRow = null;
     ExportCell cell = null;
@@ -604,6 +767,12 @@ public class ExportAction {
     cell.setText("Form Name .ver (#)");
     cell.setStyle("header");
     exportRow.add(cell);
+    if(hasPageColumn != null) {
+      cell = new ExportCell();
+      cell.setText("Page");
+      cell.setStyle("header");
+      exportRow.add(cell);
+    }
     cell = new ExportCell();
     cell.setText("Question Text");
     cell.setStyle("header");
@@ -613,11 +782,11 @@ public class ExportAction {
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Value in "+protocolnum1);
+    cell.setText("Value in "+protocolnum1 + "_1");
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
-    cell.setText("Value in "+protocolnum2);
+    cell.setText("Value in "+protocolnum2 + "_2");
     cell.setStyle("header");
     exportRow.add(cell);
     cell = new ExportCell();
@@ -637,6 +806,12 @@ public class ExportAction {
       cell.setText(exportDatapoint.getFormTitle());
       cell.setStyle("normal");
       exportRow.add(cell);
+      if(hasPageColumn != null) {
+        cell = new ExportCell();
+        cell.setText(exportDatapoint.getPage());
+        cell.setStyle("normal");
+        exportRow.add(cell);
+      }
       cell = new ExportCell();
       cell.setText(exportDatapoint.getQuestionText());
       cell.setStyle("normal");
@@ -668,9 +843,9 @@ public class ExportAction {
       cell = new ExportCell();
       if(valueEmpty != -1) {
         if(valueEmpty == 1) {
-          cell.setText(fieldEmpty + protocolnum1 + ".");
+          cell.setText(fieldEmpty + protocolnum1 + "_1" + ".");
         } else {
-          cell.setText(fieldEmpty + protocolnum2 + ".");
+          cell.setText(fieldEmpty + protocolnum2 + "_2" + ".");
         }
       } else {
         cell.setText(diffanswer);
@@ -680,29 +855,57 @@ public class ExportAction {
       exportRows.add(exportRow);
     }
     
-    List<Integer> columnsWidth = new ArrayList<Integer>();
-    columnsWidth.add(20);
-    columnsWidth.add(20);
-    columnsWidth.add(80);
-    columnsWidth.add(15);
-    columnsWidth.add(40);
-    columnsWidth.add(40);
-    columnsWidth.add(50);
+    List<ColumnCell> columns = new ArrayList<ColumnCell>();
+    ColumnCell column ;
+    column = new ColumnCell();
+    column.setWidth(20);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
+    if(hasPageColumn != null) {
+      column = new ColumnCell();
+      column.setWidth(15);
+      column.setHide(0);
+      columns.add(column);
+    }
+    column = new ColumnCell();
+    column.setWidth(80);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(15);
+    column.setHide(1);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(40);
+    column.setHide(0);
+    columns.add(column);
+    column = new ColumnCell();
+    column.setWidth(50);
+    column.setHide(1);
+    columns.add(column);
     
     try {
       if(writer.getExportRowsMap() == null) {
         Map<String, List<List<ExportCell>>> exportRowsMap = new LinkedHashMap<String, List<List<ExportCell>>>();
         exportRowsMap.put(sheetName, exportRows);
         writer.setExportRowsMap(exportRowsMap);
-        Map<String, List<Integer>> columnsWidthMap = new LinkedHashMap<String, List<Integer>>();
-        columnsWidthMap.put(sheetName, columnsWidth);
-        writer.setColumnsWidthMap(columnsWidthMap);
+        Map<String, List<ColumnCell>> columnsMap = new LinkedHashMap<String, List<ColumnCell>>();
+        columnsMap.put(sheetName, columns);
+        writer.setColumnsMap(columnsMap);
         Map<String, List<MergeCell>> mergeCellsMap = new LinkedHashMap<String, List<MergeCell>>();
         mergeCellsMap.put(sheetName, null);
         writer.setMergeCellsMap(mergeCellsMap);
       } else {
         writer.getExportRowsMap().put(sheetName, exportRows);
-        writer.getColumnsWidthMap().put(sheetName, columnsWidth);
+        writer.getColumnsMap().put(sheetName, columns);
         writer.getMergeCellsMap().put(sheetName, null);
       }
       //writer.process("C:\\Users\\wilson82740\\Desktop\\Datapoint.xlsx");

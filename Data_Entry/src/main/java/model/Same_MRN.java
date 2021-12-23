@@ -1,7 +1,14 @@
 package model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "SAME_MRN")
 public class Same_MRN {
 
+  @Id
   private Long id;
   
   private String mrn;

@@ -3,10 +3,19 @@ package model;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "MATCH_VISIT")
 public class PatientVisit {
   
+  @Id
   private Long id;
   
+  @Column(name = "MRNID")
   private Long mrnId;
   
   private String mrn;
@@ -15,16 +24,20 @@ public class PatientVisit {
   
   private Long study2Id;
   
+  @Column(name = "EVENTORDER")
   private Long eventOrder;
 
   private Long visit1Id;
   
   private Long visit2Id;
 
+  @Column(name = "VISITNAME")
   private String visitName;
 
+  @Column(name = "VISITDATE1")
   private Date visitDate1;
   
+  @Column(name = "VISITDATE2")
   private Date visitDate2;
 
   public Long getId() {
